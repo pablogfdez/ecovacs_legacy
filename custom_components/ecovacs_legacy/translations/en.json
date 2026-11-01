@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ecovacs Legacy (XMPP)",
+        "description": "Log in with your Ecovacs account to add Deebot robots that use XMPP (e.g. OZMO 930).",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "country": "Country",
+          "device_id": "Client device ID (optional)"
+        },
+        "data_description": {
+          "device_id": "Leave empty to generate a new one. Reuse the one of the official Ecovacs integration to skip the verification code."
+        }
+      },
+      "device_verification": {
+        "title": "Verify device",
+        "description": "Ecovacs sent a verification code to the e-mail address of {username}.",
+        "data": { "verification_code": "Verification code" }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "Enter the password of {username}.",
+        "data": { "password": "Password" }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error",
+      "invalid_verification_code": "Invalid verification code",
+      "no_legacy_devices": "No legacy (XMPP) robots found in this account"
+    },
+    "abort": {
+      "already_configured": "Account is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cleaned_area": { "name": "Cleaned area" },
+      "cleaned_time": { "name": "Cleaning duration" },
+      "total_area": { "name": "Total cleaned area" },
+      "total_time": { "name": "Total cleaning duration" },
+      "total_count": { "name": "Total cleanings" },
+      "water_level": { "name": "Water level" },
+      "error": { "name": "Error" },
+      "ip": { "name": "IP address" },
+      "wifi_ssid": { "name": "Wi-Fi SSID" },
+      "lifespan_main_brush": { "name": "Main brush lifespan" },
+      "lifespan_side_brush": { "name": "Side brush lifespan" },
+      "lifespan_filter": { "name": "Filter lifespan" }
+    }
+  }
+}

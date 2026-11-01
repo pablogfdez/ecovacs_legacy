@@ -1,0 +1,14 @@
+{
+  "domain": "ecovacs_legacy",
+  "name": "Ecovacs Legacy (XMPP)",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/pablogfdez/ecovacs_legacy",
+  "integration_type": "hub",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/pablogfdez/ecovacs_legacy/issues",
+  "loggers": ["custom_components.ecovacs_legacy"],
+  "requirements": ["deebot-client>=18.0.0"],
+  "version": "0.1.0"
+}
