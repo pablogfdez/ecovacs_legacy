@@ -1,4 +1,4 @@
-# Comandos y protocolo de la Deebot OZMO 930 (XMPP / XML)
+﻿# Comandos y protocolo de la Deebot OZMO 930 (XMPP / XML)
 
 Fuente: [ecovacs-deebot.js](https://github.com/mrbungle64/ecovacs-deebot.js)
 (`library/non950type/*`, `library/models.js`, `library/errorCodes.json`) y la documentación de
@@ -14,7 +14,7 @@ Capacidades del modelo: cepillo principal, cepillo lateral, filtro, limpieza por
 | Elemento | Valor |
 | --- | --- |
 | Login REST | API de Ecovacs (la reutiliza `deebot-client`): `user_id` + `token` |
-| Servidor | `msg-<continente>.ecouser.net:5223` (TLS directo; continente `ww`, `eu`, `na`, `as`) |
+| Servidor | `msg-<continente>.ecouser.net:5223` (XMPP en claro + STARTTLS obligatorio (TLS directo ya no responde); continente `ww`, `eu`, `na`, `as`) |
 | Dominio XMPP | `ecouser.net` |
 | JID cliente | `<user_id>@ecouser.net/<resource>` con `resource` = 8 primeros caracteres del *device id* |
 | Autenticación | SASL `PLAIN`; usuario `<user_id>`, contraseña `0/<resource>/<token>` |

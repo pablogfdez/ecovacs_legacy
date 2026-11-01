@@ -162,38 +162,47 @@ class XmppClient:
             backoff = min(backoff * 2, MAX_BACKOFF)
 
     async def _open(self) -> None:
-        loop = asyncio.get_running_loop()
         self._queue = asyncio.Queue()
         self._sent.clear()
-        if not self._tls:
-            self._reader, self._writer = await asyncio.wait_for(
-                asyncio.open_connection(self._host, self._port), STEP_TIMEOUT
+        # The server speaks plain XMPP and requires STARTTLS (no direct TLS)
+        self._reader, self._writer = await asyncio.wait_for(
+            asyncio.open_connection(self._host, self._port), STEP_TIMEOUT
+        )
+        self._start_read_task()
+
+    def _start_read_task(self) -> None:
+        self._read_task = asyncio.get_running_loop().create_task(self._read_loop())
+
+    async def _start_tls(self) -> None:
+        """Upgrade the connection to TLS after the server sent <proceed/>."""
+        assert self._writer is not None
+        task, self._read_task = self._read_task, None
+        if task is not None:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        context = await asyncio.get_running_loop().run_in_executor(
+            None, self._create_ssl_context
+        )
+        try:
+            await self._writer.start_tls(
+                context,
+                server_hostname=self._host,
+                ssl_handshake_timeout=STEP_TIMEOUT,
             )
-        else:
-            context = await loop.run_in_executor(None, self._create_ssl_context)
-            try:
-                self._reader, self._writer = await asyncio.wait_for(
-                    asyncio.open_connection(
-                        self._host,
-                        self._port,
-                        ssl=context,
-                        server_hostname=self._host,
-                    ),
-                    STEP_TIMEOUT,
-                )
-            except ssl.SSLCertVerificationError:
-                if not self._verify_tls:
-                    raise
-                # Legacy Ecovacs XMPP servers are known for outdated certificates
-                _LOGGER.warning(
-                    "Certificate verification of %s failed, "
-                    "retrying without verification",
-                    self._host,
-                )
-                self._verify_tls = False
-                await self._open()
-                return
-        self._read_task = loop.create_task(self._read_loop())
+        except ssl.SSLCertVerificationError as err:
+            if not self._verify_tls:
+                raise
+            # Legacy Ecovacs XMPP servers are known for outdated certificates
+            _LOGGER.warning(
+                "Certificate verification of %s failed (%s), "
+                "retrying without verification",
+                self._host,
+                err,
+            )
+            self._verify_tls = False
+            raise ConnectionError("Retrying without certificate verification") from err
+        self._reset_parser()
+        self._start_read_task()
 
     def _create_ssl_context(self) -> ssl.SSLContext:
         if self._verify_tls:
@@ -291,6 +300,11 @@ class XmppClient:
 
     async def _handshake(self) -> None:
         features = await self._open_stream()
+        if self._tls and any(local_name(f.tag) == "starttls" for f in features):
+            await self._write("<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>")
+            await self._next_stanza("proceed")
+            await self._start_tls()
+            features = await self._open_stream()
         mechanisms = [
             m.text for m in features.iter() if local_name(m.tag) == "mechanism"
         ]
