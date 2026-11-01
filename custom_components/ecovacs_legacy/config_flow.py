@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import asdict
 import logging
 import random
 import string
@@ -28,7 +27,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers import aiohttp_client, selector
 
-from .const import CONF_ACCOUNT_CREDENTIALS, CONF_VERIFICATION_CODE, DOMAIN
+from .const import CONF_VERIFICATION_CODE, DOMAIN
 
 try:
     import probatio as vol  # Home Assistant >= the voluptuous replacement
@@ -100,10 +99,6 @@ class EcovacsLegacyConfigFlow(ConfigFlow, domain=DOMAIN):
             self._authenticator = None
 
     def _finish(self) -> ConfigFlowResult:
-        if self._authenticator and (
-            account := self._authenticator.account_credentials
-        ):
-            self._input[CONF_ACCOUNT_CREDENTIALS] = asdict(account)
         self.hass.async_create_background_task(
             self._async_teardown(), "ecovacs_legacy_flow_teardown"
         )

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import logging
 
 from deebot_client.api_client import ApiClient
@@ -12,7 +11,6 @@ from deebot_client.exceptions import (
     DeviceVerificationRequiredError,
     InvalidAuthenticationError,
 )
-from deebot_client.models import AccountCredentials
 from deebot_client.util import md5
 from deebot_client.util.continents import get_continent
 
@@ -27,7 +25,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
 
-from .const import CONF_ACCOUNT_CREDENTIALS
 from .device import XMPP_DOMAIN, XMPP_PORT, LegacyDevice, xmpp_host
 from .xmpp_client import XmppClient
 
@@ -54,22 +51,8 @@ class LegacyController:
             ),
             config[CONF_USERNAME],
             md5(config[CONF_PASSWORD]),
-            account_credentials=(
-                AccountCredentials(**account)
-                if (account := config.get(CONF_ACCOUNT_CREDENTIALS))
-                else None
-            ),
-        )
-        self._unsubscribe_credentials = (
-            self._authenticator.subscribe_account_credentials(self._store_credentials)
         )
         self._api_client = ApiClient(self._authenticator)
-
-    async def _store_credentials(self, account: AccountCredentials) -> None:
-        self._hass.config_entries.async_update_entry(
-            self._entry,
-            data={**self._entry.data, CONF_ACCOUNT_CREDENTIALS: asdict(account)},
-        )
 
     async def _password(self) -> str:
         """Return the XMPP password (renews the token when needed)."""
@@ -110,7 +93,6 @@ class LegacyController:
 
     async def teardown(self) -> None:
         """Stop everything."""
-        self._unsubscribe_credentials()
         for device in self.devices:
             await device.stop()
         await self._authenticator.teardown()
